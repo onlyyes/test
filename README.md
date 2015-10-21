@@ -40,4 +40,18 @@ test
       4.4.1.1) Если есть элемент "Contours", то выбирается элемент "Contours/Contour", для него выбирается "EntitySpatial" и для него выполняется пункт 4.1.1
   4.5) Выбриаются элементы "Contours". Для Каждого проверяется имя. Если оно "NewContour" или "ExistContour" или "Contour", то выбриается элемент "EntitySpatial" и выполняется пункт 4.1.1
 5) Проверяется каждый элемент "Package/FormParcels/SpecifyRelatedParcel". Проверка происходит как и для пункта 4, но в пункте 4.3 нужно выбрать "ExistSubParcels"
-6)
+6) Проверяется каждый элемент "Package/FormParcels/SpecifyParcelApproximal" //В функцию передается "FormParcels/SpecifyParcelApproximal"
+  6.1) Для каждого элемента "ExistParcel" выполяняются пункты 4.1 - 4.5
+  6.2) Для каждого элемента "ExistEZ/ExistEZParcels" выполяняются пункты 4.1 - 4.5
+  6.3) Для каждого элемента "ExistEZ/ExistEZParcels" выполняется
+    6.3.1)  Для каждого элемента "CompositionEZ/InsertEntryParcels/InsertEntryParcel" выполняется
+      6.3.1.1) Если есть элемент "NewEntryParcel", то для него выполняются пункты 4.1 - 4.5
+  6.4) Для каждого элемента "ExistEZ/ExistEZEntryParcels/ExistEZEntryParcel" выполняются пункты 4.1 - 4.5
+7) Для каждого элемента "Package/SpecifyParcel" выполняются пункты 6.1 - 6.4
+8) Для каждого элемента "Package/SpecifyParcel/SpecifyRelatedParcel" Выполняются проверки из пункта 5
+9) Для каждого элемента "Package/SpecifyParcel/SpecifyParcelApproximal" выполяются пункты 6.1 - 6.4
+10) Для каждого элемента "Package/SpecifyParcelsApproximal/SpecifyParcelApproximal" выполяются пункты 6.1 - 6.4
+11) Для каждого элемента "Package/SubParcels/NewSubParcel" Выполняются пункты 4.1 - 4.5
+12) Для каждого "Package/SubParcels/ExistSubParcel" выполняются пункты 4.1 - 4.5
+
+Продолжить с // 7. Элемент  AppliedFile///////////////////////////////////////////////////////////////////
