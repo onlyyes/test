@@ -1,0 +1,168 @@
+Schema\OKS_TechPlan_Ver03\TP_v03.xsd
+Schema\OKS_TechPlan_Ver03\TPLinear_v03.xsd
+
+3яя версия
+3яя версия линейное сооружение
+
+TP{
+	Building	TP_v03.xsd
+	{
+		Package
+		{
+			NewBuildings
+				foreach ("NewBuilding"){
+					CheckFlkObjectHolder(ObjectInfoBuildingBase)
+				}
+			ExistBuilding
+				CheckFlkObjectHolder(ObjectInfoBuildingBase)
+			NewApartHouse
+				CheckFlkObjectHolder(ObjectInfoApartmentHouse)
+			SubBuildings
+				CheckFlkObjectHolder(ObjectInfoSubObjects)
+		}
+	}
+	Construction	TP_v03.xsd
+	{
+		Package
+		{
+			NewConstructions
+				foreach ("NewConstruction"){
+					CheckFlkObjectHolder(ObjectInfoBuildingBase)
+				}
+			ExistConstruction
+				CheckFlkObjectHolder(ObjectInfoBuildingBase)
+			SubConstructions	
+				CheckFlkObjectHolder(ObjectInfoSubObjects)
+		}
+	}
+	Uncompleted	TP_v03.xsd
+	{
+		Package
+		{
+			NewUncompleteds
+				foreach ("NewUncompleted"){
+					CheckFlkObjectHolder(ObjectInfoBuildingBase)
+				}
+			ExistUncompleted
+				CheckFlkObjectHolder(ObjectInfoBuildingBase)
+			SubUncompleteds
+				CheckFlkObjectHolder(ObjectInfoSubObjects)
+		}
+	}
+	Flat	TP_v03.xsd
+	{
+		Package
+		{
+			NewFlats
+				foreach ("NewFlat"){
+					CheckFlkObjectHolder(ObjectInfoFlatBase)
+				}
+			ExistFlat
+				CheckFlkObjectHolder(ObjectInfoFlatBase)
+			SubFlats
+				CheckFlkObjectHolder(ObjectInfoSubObjects)
+		}
+	}
+}
+	
+!!isTpLinearPart == true
+TPLinear
+Package	TPLinear_v03.xsd
+	NewLinearConstruction
+		CheckFlkObjectHolder(ObjectInfoConditionalPartBase, "Package/NewLinearConstruction/NewConditionalPart")
+	ExistLinearConstruction
+		CheckFlkObjectHolder(ObjectInfoConditionalPartBase, "Package/ExistLinearConstruction/ExistConditionalPart")
+	
+!!isTpLinearOks == true
+TPLinear
+Package	TPLinear_v03.xsd
+	NewLinearConstruction	если нет, то ошибка
+		CheckFlkObjectHolder(ObjectInfoLinearConstruction, "Package/NewLinearConstruction/NewAllLinear")
+	ExistLinearConstruction		если нет, то ошибка
+		CheckFlkObjectHolder(ObjectInfoLinearConstruction, "Package/ExistLinearConstruction/ExistAllLinear")
+	SubConstructions
+		CheckFlkObjectHolder(ObjectInfoSubObjects, "SubConstruction")
+		
+------------------------------
+CheckEntitySpatialTP3
+	//Точка, Линия, Дуга, Окружность хранятся в элементе TypeUnit
+	//Если тип указан как окружность, то должен присутствовать аттрибут R ("Для типа 'Окружность' значение 'R' должно быть определено")
+	//Если тип не является окружностью, то R не должен присутствовать ("Значение 'R' должно быть определено только для типа 'Окружность'")
+	//Если тип является окружностью, то должен быть один элемент, описывающий координату /Ordinate. "Некорректное представление координат в виде окружности: указано несколько элементов «Координата»"
+	
+	//Если тип дуга, то должно быть 3 точки
+	//Если тип координат не определен, то тип считается полигоном, если совпадают первая и последняя точки (poligon). В противном случае это полилиния.
+	1. Если есть координаты
+	{
+		2. Если у нас Здание, то проверку проводить надо (poligonOnly == true)
+		{
+			3. Если тип координат не полигон, то ошибка.
+				"Контур должен быть замкнут"
+		}
+	}
+		
+		
+------------------------------
+ObjectInfoBuildingBase:
+	1. Извлекаем кадастровый номер (/CadastralNumber). Если он есть, то проверка на шаблон.
+		"Кадастровый номер ОКС не соответствует шаблону."
+	2. Извлекаем кадастровый номер кадастровых кварталов (/CadastralBlocks/CadastralBlock). Если они есть, то проверка на шаблон.
+		"Кадастровый номер КК не соответствует шаблону"
+	3. Извлекается назначение здания (/AssignationBuilding). (Работает только для "/Building/Package/NewBuildings/NewBuilding"). Если оно равно 204003000000, то ошибка.
+		"Некорректное значение параметра «Назначение»"
+	4. Извлекаем Кадастровый номер земельного участка (земельных участков), в пределах которого (которых) расположено здание (/ParentCadastralNumbers/CadastralNumber). Если он есть, то проверка на шаблон
+		"Кадастровый номер земельного участка не соответствует шаблону."
+	5. Извлекаем Кадастровый номер объекта (объектов) недвижимости, из которого (которых) было образовано здание (/PrevCadastralNumbers/CadastralNumber). 
+		"Кадастровый номер ОКС не соответствует шаблону."
+	6. Проверка координат (/EntitySpatial/SpatialElement). CheckEntitySpatialTP3 (poligonOnly = true для зданий)
+	7. Извлекаем сведения о частях здания (/SubBuildings). Если они есть, проводим проверку частей (CheckFlkObjectHolder(ObjectInfoSubObjects,"SubBuilding")). (тут внутри будет проверка замкнутости)
+	8. Извлекаем сведения о частях сооружения (/SubConstructions). Если они есть, проводим проверку частей (CheckFlkObjectHolder(ObjectInfoSubObjects,"SubConstructions")).
+	9. Извлекаем сведения о частях объекта незавершенного строительства (/SubUncompleted). Если они есть, проводим проверку частей (CheckFlkObjectHolder(ObjectInfoSubObjects,"SubUncompleted")).
+	
+------------------------------
+ObjectInfoSubObjects
+	1. Извлекаем кадастровый номер (/CadastralNumber). Если он есть, то проверка на шаблон.
+		"Кадастровый номер ОКС/Помещения не соответствует шаблону."
+	2. Извлекаются все сведения о частях (/NewSubBuilding /ExistSubBuilding /NewSubConstruction /ExistSubConstruction /NewSubUncompleted /ExistSubUncompleted /NewSubFlat /ExistSubFlat)
+	{
+		3. Если у нас проверяется /SubBuilding или /SubFlat, то нужно проверить координаты CheckEntitySpatialTP3 (poligonOnly = true). В остальных случаях poligonOnly = false
+	}
+	
+------------------------------
+ObjectInfoApartmentHouse
+	1. Извлекается назначение здания (/AssignationBuilding). Если оно не равно "204003000000", то ошибка.
+		"Некорректное значение параметра «Назначение»"
+	2. Вызывается проверка из ObjectInfoBuildingBase.
+	3. Из родительского тэга извлекаются сведения о помещениях, расположенных в многоквартирном доме (!!!!!!!!!!!!! перенести на уровень вверх). CheckApartmentFlats
+		3.1	Извлекается кадастровый номер. Если он есть, то проверка на шаблон.
+		3.2 Проверяется назначение помещения. CheckAssignationFlat(!!!!!!!!! дубль). Извлекается AssignationCode и AssignationType. Если assignationCode == "206001000000" и assignationType не пустое, то ошибка.
+			"Для нежилого помещения должен отсутствовать «Вид жилого помещения»"
+			
+------------------------------
+ObjectInfoFlatBase
+	1. Извлекаем кадастровый номер (/CadastralNumber). Если он есть, то проверка на шаблон.
+		"Кадастровый номер ОКС не соответствует шаблону."
+	2. Извлекаем кадастровый номер кадастровых кварталов (/CadastralBlocks/CadastralBlock). Если они есть, то проверка на шаблон.
+		"Кадастровый номер КК не соответствует шаблону"
+	3. Извлекаются Кадастровый номер здания или сооружения, в котором расположено помещение (/ParentCadastralNumber/CadastralNumberOKS /ParentCadastralNumberFlat/CadastralNumberOKS). Если они есть, то проверка на шаблон.
+		"Кадастровый номер не соответствует шаблону"
+	4. Извлекаются Кадастровый номер квартиры, в которой расположена комната (/ParentCadastralNumber/CadastralNumberFlat /ParentCadastralNumberFlat/CadastralNumberFlat). Если они есть, то проверка на шаблон.
+		"Кадастровый номер не соответствует шаблону"
+	5. Проверка назначения помещения. CheckAssignationFlat(!!!!!!!!!!!!!!1 дубль). Извлекается AssignationCode и AssignationType. Если assignationCode == "206001000000" и assignationType не пустое, то ошибка.
+		"Для нежилого помещения должен отсутствовать «Вид жилого помещения»"
+	6. Извлекается Кадастровый номер объекта (объектов) недвижимости, из которого (которых) было образовано помещение (/PrevCadastralNumbers/CadastralNumber). Если они есть, то проверка на шаблон.
+		"Кадастровый номер ОКС не соответствует шаблону."
+	7. Извлекаются Сведения о частях помещения (/SubFlats). Выполняется проверка CheckFlkObjectHolder(ObjectInfoSubObjects)
+	
+----------------------------
+ObjectInfoConditionalPartBase
+	1. Извлекаются Кадастровый номер земельного участка (земельных участков), в пределах которого (которых) расположена условная часть (/ParentCadastralNumbers/CadastralNumber). Если они есть, то проверка на шаблон.
+		"Кадастровый номер не соответствует шаблону"
+	2. Выполняется проверка координат CheckEntitySpatialTP3.
+
+----------------------------
+ObjectInfoLinearConstruction
+	1. Номер (номера) кадастрового квартала (кадастровых кварталов) в пределах которого (которых) расположено линейное сооружение (/CadastralBlocks/CadastralBlock)
+	2. Кадастровый номер земельного участка (земельных участков), в пределах которого (которых) расположено линейное сооружение (/ParentCadastralNumbers/CadastralNumber)
+	3. Кадастровый номер объекта (объектов) недвижимости, из которого (которых) было образовано помещение (/PrevCadastralNumbers/CadastralNumber)
+	4. Извлекаются сведения о частях сооружения (/SubConstructions). CheckFlkObjectHolder(ObjectInfoSubObjects)
